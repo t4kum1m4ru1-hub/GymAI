@@ -1,1 +1,1 @@
-# gym-coach
+# GymAI
