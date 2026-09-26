@@ -539,13 +539,12 @@ const STORAGE_KEY = 'aiGymCoachState_v2';
 const FIREBASE_CONFIG_STORAGE_KEY = 'gymAiFirebaseConfig_v1';
 const LAST_FIREBASE_UID_STORAGE_KEY = 'gymAiLastFirebaseUid_v1';
 
-// Firebaseコンソールの「ウェブアプリ」設定をここへ直接貼り付けても動作します。
-// 空のままでも、アプリの設定画面から同じJSONを保存できます。
+// Firebaseコンソールの「ウェブアプリ」設定。公開版はこの構成を常に使用します。
 const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  appId: ""
+  apiKey: "AIzaSyDyfgaz-lQZB6XcnpqiWXR4D1udPyZvX-0",
+  authDomain: "gymai-e48fd.firebaseapp.com",
+  projectId: "gymai-e48fd",
+  appId: "1:631769063611:web:053016c6792dcc6073099e"
 };
 
 const FIRESTORE_RULES = `rules_version = '2';
@@ -799,13 +798,7 @@ function normalizeFirebaseConfig(config) {
 }
 
 function loadFirebaseConfig() {
-  try {
-    const saved = localStorage.getItem(FIREBASE_CONFIG_STORAGE_KEY);
-    return normalizeFirebaseConfig(saved ? JSON.parse(saved) : DEFAULT_FIREBASE_CONFIG);
-  } catch (e) {
-    console.error('Firebase設定の読み込みに失敗しました', e);
-    return null;
-  }
+  return normalizeFirebaseConfig(DEFAULT_FIREBASE_CONFIG);
 }
 
 function setCloudSyncStatus(message, type = '') {
@@ -877,6 +870,8 @@ function firebaseErrorMessage(error) {
     'auth/popup-closed-by-user': 'ログイン画面が閉じられました',
     'auth/popup-blocked': 'ポップアップがブロックされました',
     'auth/unauthorized-domain': 'このドメインがFirebaseで許可されていません',
+    'auth/invalid-api-key': 'FirebaseのAPIキーが正しくありません',
+    'auth/operation-not-allowed': 'FirebaseでGoogleログインが有効になっていません',
     'auth/network-request-failed': 'ネットワークへ接続できません',
     'permission-denied': 'Firestoreのアクセス権がありません'
   };
@@ -2174,7 +2169,6 @@ function renderSettingsTab() {
   selectedGenderChip = gender || '';
   const age = calcAge(birthYear);
   const firebaseConfig = loadFirebaseConfig();
-  const configText = JSON.stringify(firebaseConfig || DEFAULT_FIREBASE_CONFIG, null, 2);
   const user = currentGoogleUser;
   const photoUrl = user && /^https:\/\//i.test(user.photoURL || '') ? user.photoURL : '';
 
@@ -2211,22 +2205,6 @@ function renderSettingsTab() {
         <p id="cloud-sync-status" class="sync-status ${escapeHtml(cloudSyncStatusType)}">${escapeHtml(cloudSyncStatus)}</p>
       </div>
 
-      <details class="firebase-details" ${firebaseConfig ? '' : 'open'}>
-        <summary>Firebaseの初回設定</summary>
-        <ol class="setup-steps">
-          <li>FirebaseでWebアプリを作成し、AuthenticationのGoogleプロバイダを有効化</li>
-          <li>Cloud Firestoreデータベースを作成</li>
-          <li>Webアプリの firebaseConfig JSONを下欄へ貼り付けて保存</li>
-          <li>下記ルールをFirestoreの「ルール」で公開</li>
-        </ol>
-        <label class="field-label" for="firebase-config-input">firebaseConfig (JSON)</label>
-        <textarea id="firebase-config-input" class="text-input firebase-config-input" spellcheck="false">${escapeHtml(configText)}</textarea>
-        <button type="button" class="btn btn-primary" id="save-firebase-config-btn">Firebase設定を保存</button>
-        <p class="settings-hint">設定後はこのページが再読み込みされます。Googleログインは file:// では動かないため、localhost またはHTTPSで開いてください。</p>
-        <label class="field-label">Firestore セキュリティルール</label>
-        <pre class="rules-box" id="firestore-rules-box">${escapeHtml(FIRESTORE_RULES)}</pre>
-        <button type="button" class="btn btn-outline btn-compact" id="copy-firestore-rules-btn">ルールをコピー</button>
-      </details>
     </div>
 
     <div class="card">
